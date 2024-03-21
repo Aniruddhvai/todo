@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo List App</title>
+</head>
+<body>
+    <h1>Todo List</h1>
+    <form id="todoForm">
+        <input type="text" id="todoName" placeholder="Todo Name" required>
+        <input type="text" id="todoDescription" placeholder="Description" required>
+        <button type="submit">Add Todo</button>
+    </form>
+    <table id="todoTable">
+        <thead>
+            <tr>
+                <th>Todo Name</th>
+                <th>Description</th>
+                <th>Task Done</th>
+                <th>Task Not Done</th>
+            </tr>
+        </thead>
+        <tbody id="todoBody"></tbody>
+    </table>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.6.8/axios.min.js"></script>
+    <script>
+        const baseUrl = 'https://crudcrud.com/api/81253fa3b0db40c6ae517ea6a4c6c478/todo'; 
+
+        const todoForm = document.getElementById('todoForm');
+        const todoNameInput = document.getElementById('todoName');
+        const todoDescriptionInput = document.getElementById('todoDescription');
+        const todoTableBody = document.getElementById('todoBody');
+
+        // Fetch all todos
+        async function fetchTodos() {
+            try {
+                const response = await axios.get(baseUrl);
+                const todos = response.data;
+                renderTodos(todos);
+            } catch (error) {
+                console.error('Error fetching todos:', error);
+            }
+        }
+
+        // Render todos
+        function renderTodos(todos) {
+            todoTableBody.innerHTML = '';
+            todos.forEach(todo => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${todo.name}</td>
+                    <td>${todo.description}</td>
+                    <td><input type="checkbox" ${todo.taskDone ? 'checked' : ''} disabled></td>
+                    <td><input type="checkbox" ${todo.taskNotDone ? 'checked' : ''} disabled></td>
+                `;
+                todoTableBody.appendChild(row);
+            });
+        }
+
+        // Add todo
+        async function addTodo() {
+            const todoName = todoNameInput.value.trim();
+            const todoDescription = todoDescriptionInput.value.trim();
+            if (todoName && todoDescription) {
+                try {
+                    await axios.post(baseUrl, { name: todoName, description: todoDescription, taskDone: false, taskNotDone: true });
+                    fetchTodos();
+                    todoForm.reset();
+                } catch (error) {
+                    console.error('Error adding todo:', error);
+                }
+            } else {
+                alert('Please fill in both Todo Name and Description fields.');
+            }
+        }
+
+        // Form submit event listener
+        todoForm.addEventListener('submit', function(event) {
+            event.preventDefault();
+            addTodo();
+        });
+
+        // Initial fetch of todos when the page loads
+        fetchTodos();
+    </script>
+</body>
+</html>
